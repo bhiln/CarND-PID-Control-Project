@@ -34,7 +34,10 @@ int main()
 
   PID pid;
   // TODO: Initialize the pid variable.
-  pid.Init(0.134611, 0.000270736, 3.05349);
+  static std::vector<double> p = {0,0,0};
+  static std::vector<double> dp = {1,1,1};
+  pid.Init(0.134611, 0.000270736, 3.05349); //found from a PID example online for PID testing
+  // pid.Init(p[0], p[1], p[2]);
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
     // "42" at the start of the message means there's a websocket message event.
@@ -58,18 +61,70 @@ int main()
           * NOTE: Feel free to play around with the throttle and speed. Maybe use
           * another PID controller to control the speed!
           */
+          static bool twiddle = false;
           static bool first = true;
+          static int i = 0;
+          static int step = 0;
+          static double tol = 0.2;
+          if (twiddle){
+            static double best_err = std::numeric_limits<double>::max();
+            pid.itter++;
+            if (dp[0] + dp[1] + dp[2] > tol){
+              if (pid.itter%pid.n*2 == 0){
+                if (first){
+                  best_err = pid.TotalError();
+                }
+                if (step == 0){
+                  p[i%3] += dp[i%3];
+                  pid.Init(p[0], p[1], p[2]);
+                  step = 1;
+                  pid.itter = 0;
+                }
+                else if (step == 1){
+                  double err = pid.TotalError();
+                  if (err < best_err){
+                    best_err = err;
+                    dp[i%3] *= 1.1;
+                  }
+                  else{
+                    p[i%3] -= 3*dp[i%3];
+                    pid.Init(p[0], p[1], p[2]);
+                    step = 2;
+                    pid.itter = 0;
+                  }
+                }
+                else if (step == 2){
+                  double err = pid.TotalError();
+                  if (err < best_err){
+                    best_err = err;
+                    dp[i%3] *= 1.1;
+                  }
+                  else{
+                    p[i%3] += dp[i%3];
+                    dp[i%3] *= 0.9;
+                  }
+                  i++;
+                }
+              }
+              pid.UpdateError(cte);
+              std::cout << p[0] << "," << p[1] << "," << p[2] << std::endl;
+            }
+            else{
+              // std::cout << p[0] << "," << p[1] << "," << p[2] << std::endl;
+              return 0;
+            }
+          }
           static double sum_cte = 0;
           static double last_cte = 0;
-          if (first == true){
+          if (first){
             last_cte = cte;
             first = false;
           }
           sum_cte += cte;
           double p = pid.Kp * cte;
-          double i = pid.Ki * sum_cte;
+          double ii = pid.Ki * sum_cte;
           double d = pid.Kd * (cte-last_cte);
-          steer_value = -p-i-d;
+          steer_value = -p-ii-d;
           last_cte = cte;
           
           // DEBUG
