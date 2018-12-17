@@ -36,7 +36,7 @@ int main()
   // TODO: Initialize the pid variable.
   static std::vector<double> p = {0,0,0};
   static std::vector<double> dp = {1,1,1};
-  pid.Init(0.134611, 0.000270736, 3.05349); //found from a PID example online for PID testing
+  pid.Init(0.134611, 0.000270736, 3.05349); //found from a PID example online for PID testing https://github.com/jeremy-shannon/CarND-PID-Control-Project/blob/master/src/main.cpp
   // pid.Init(p[0], p[1], p[2]);
 
   h.onMessage([&pid](uWS::WebSocket<uWS::SERVER> ws, char *data, size_t length, uWS::OpCode opCode) {
