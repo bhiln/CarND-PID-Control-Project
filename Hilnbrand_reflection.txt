@@ -1,0 +1,7 @@
+Student describes the effect of the P, I, D component of the PID algorithm in their implementation. Is it what you expected?
+The Proportional component directs the vehicle towards the centerline proportionally to the cte. With only the P component, the car tends to overshoot and oscillate over the centerline.
+The Integral component works to cancel out steering drift, bringing the vehicle closer to the centerline the longer it is away from the centerline.
+The Derivative component relates the derivative of the cte, meaning that the closer the vehicle gets to the centerline, the less of an attack angle it has, slowly meeting the centerline. this reduces oscillation.
+
+Student discusses how they chose the final hyperparameters (P, I, D coefficients). This could be have been done through manual tuning, twiddle, SGD, or something else, or a combination!
+I had some trouble with these coefficients. At first, i played around with individual values to try and get a sense of how they relate to the motion of the vehicle. Next I tried to implement a twiddle application. I believe I left some of the twiddle code in my application. This helped me understand how to manipulate the values to get closer to a unique combination. In the end, I ended up referring to other PID implementations to find a combination that worked for me. The source is annotated in my code.
